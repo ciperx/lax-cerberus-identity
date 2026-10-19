@@ -152,5 +152,29 @@ export async function verifyChallenge(input: VerifyInput): Promise<VerifyResult>
       reason: `${REASONS.wrongSigner}: recovered ${recovered}`,
     };
   }
-  return { ok: true, reason: REASONS.ok };
+  return { ok: true, reason: REASONS.ok, nonce: challenge.nonce };
+}
+
+export interface NonceStore {
+  has: (nonce: string) => boolean;
+  add: (nonce: string) => void;
+  size: () => number;
+}
+
+/**
+ * A tiny in-memory guard so a server can actually use the replay check.
+ *
+ * The verifier stays pure and only reads; this is the piece a caller needs to
+ * hold the nonces between requests. For more than one process, back it with a
+ * database that has a unique constraint on the nonce.
+ */
+export function createNonceStore(initial: Iterable<string> = []): NonceStore {
+  const seen = new Set<string>(initial);
+  return {
+    has: (nonce) => seen.has(nonce),
+    add: (nonce) => {
+      seen.add(nonce);
+    },
+    size: () => seen.size,
+  };
 }

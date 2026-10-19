@@ -51,7 +51,7 @@ const result = await verifyChallenge({
 All files    |    100 |    100 |     100 |    100
 ```
 
-100 percent statements, branches, functions and lines, measured with `vitest run --coverage` (v8). 21 tests.
+100 percent statements, branches, functions and lines, measured with `vitest run --coverage` (v8). 23 tests.
 
 ## Mutation check
 
@@ -60,7 +60,7 @@ Removing the expiry branch fails one test, and changing the digest path in the s
 ## Files
 
 - `src/identity.ts`, types, the reason table, `challengeMessage`, the pure `createChallenge`, the async `verifyChallenge`.
-- `test/identity.test.ts`, 21 tests over issue, verify, tamper, replay, expiry, future issue, shape and recovery failure.
+- `test/identity.test.ts`, 23 tests over issue, verify, tamper, replay, expiry, future issue, shape and recovery failure.
 
 ## Why viem
 

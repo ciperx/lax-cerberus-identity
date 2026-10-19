@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { privateKeyToAccount } from "viem/accounts";
 import {
   createChallenge,
+  createNonceStore,
   verifyChallenge,
   challengeMessage,
   REASONS,
@@ -59,7 +60,7 @@ describe("verifyChallenge", () => {
   it("accepts a valid signature from the owner", async () => {
     const c = build();
     const r = await verifyChallenge({ challenge: c, signature: await sign(c), ownerAddress: owner.address, now: NOW + 10 });
-    expect(r).toEqual({ ok: true, reason: REASONS.ok });
+    expect(r).toEqual({ ok: true, reason: REASONS.ok, nonce: c.nonce });
   });
 
   it("accepts the owner address in a different case", async () => {
@@ -142,7 +143,7 @@ describe("verifyChallenge", () => {
     const bad = "0x" + "11".repeat(65);
     const r = await verifyChallenge({ challenge: c, signature: bad, ownerAddress: owner.address, now: NOW + 10 });
     expect(r.ok).toBe(false);
-    expect([REASONS.badSignature, REASONS.wrongSigner].some((m) => r.reason.startsWith(m))).toBe(true);
+    expect(r.reason).toBe(REASONS.badSignature);
   });
 });
 
@@ -161,5 +162,35 @@ describe("signature presence", () => {
     const c = build();
     const r = await verifyChallenge({ challenge: c, signature: undefined as unknown as string, ownerAddress: owner.address, now: NOW + 10 });
     expect(r.reason).toBe(REASONS.badSignatureShape);
+  });
+});
+
+describe("createNonceStore", () => {
+  it("holds nonces between requests and blocks a replay", async () => {
+    const store = createNonceStore();
+    const c = build();
+    const signature = await sign(c);
+    const first = await verifyChallenge({
+      challenge: c, signature, ownerAddress: owner.address, now: NOW + 5,
+    });
+    expect(first.ok).toBe(true);
+    store.add(first.nonce as string);
+    expect(store.size()).toBe(1);
+    // The verifier stays pure: it only refuses when the caller passes the guard.
+    const unguarded = await verifyChallenge({
+      challenge: c, signature, ownerAddress: owner.address, now: NOW + 5,
+    });
+    expect(unguarded.ok).toBe(true);
+    const guarded = await verifyChallenge({
+      challenge: c, signature, ownerAddress: owner.address, now: NOW + 5,
+      usedNonces: [first.nonce as string],
+    });
+    expect(guarded.reason).toBe(REASONS.replayed);
+  });
+
+  it("accepts an initial iterable", () => {
+    const store = createNonceStore(["a"]);
+    expect(store.has("a")).toBe(true);
+    expect(store.has("b")).toBe(false);
   });
 });
