@@ -1,0 +1,22 @@
+{
+  "name": "lax-cerberus-identity",
+  "version": "1.0.0",
+  "description": "Cerberus chamber 1: issue a challenge for a listed LAX agent and verify the EIP-191 signature of the listing owner, with expiry and replay protection.",
+  "type": "module",
+  "main": "dist/identity.js",
+  "types": "dist/identity.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "viem": "^2.21.45"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.4",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}
