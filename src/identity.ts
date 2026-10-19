@@ -27,6 +27,8 @@ export interface VerifyInput {
 export interface VerifyResult {
   ok: boolean;
   reason: string;
+  /** Present only on success, so the caller knows which nonce to consume. */
+  nonce?: string;
 }
 
 export const DEFAULT_TTL_SECONDS = 300;
